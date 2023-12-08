@@ -13,6 +13,9 @@ public class Enemy : MonoBehaviour
     private Transform player;
     private Rigidbody2D rb;
 
+    public float damageDelay = 1.0f; // delay between damage Input
+    private bool canDamage = true;
+
     void Start()
     {
         currentHealth = maxHealth;
@@ -29,6 +32,8 @@ public class Enemy : MonoBehaviour
         }
 
         rb = GetComponent<Rigidbody2D>();
+
+
     }
 
     // Update is called once per frame
@@ -56,7 +61,10 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(int damageAmount)
     {
         currentHealth -= damageAmount;
-
+        
+        Debug.Log("Enemy health before damage: " + (currentHealth + damageAmount));
+        Debug.Log("Dealing damage to the enemy: " + damageAmount);
+        Debug.Log("Enemy health after damage " + currentHealth);
         if (currentHealth <= 0)
         {
             DefeatEnemy();
@@ -72,10 +80,8 @@ public class Enemy : MonoBehaviour
 
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerStay2D(Collider2D other)
     {
-        Debug.Log("Trigger entered");
-
         if (other.CompareTag("Player"))
         {
             Debug.Log("Player detected");
@@ -84,13 +90,53 @@ public class Enemy : MonoBehaviour
 
             if (playerHealth != null)
             {
-                Debug.Log("Player health before damage: " + playerHealth.GetCurrentHealth());
-                Debug.Log("Dealing damage to the player");
                 playerHealth.TakeDamage(damage);
-                 Debug.Log("Player health after damage: " + playerHealth.GetCurrentHealth());
             }
+        }
+    }
 
-            Debug.Log("Destroing the enemy");
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player") && canDamage )
+        {
+            StartCoroutine(ApplyDamageWithDelay(other.GetComponent<PlayerHealth>()));
+        }
+    }
+
+    IEnumerator ApplyDamageWithDelay(PlayerHealth playerHealth)
+    {
+        if (playerHealth == null)
+        {
+            // Handle the case where playerHealth is null
+            yield break;
+        }
+
+        canDamage = false;
+
+        Debug.Log("Player health before damage: " + playerHealth.GetCurrentHealth());
+
+        //Dealing damage to the Player
+        playerHealth.TakeDamage(damage);
+
+        Debug.Log("Player health after damage: " + playerHealth.GetCurrentHealth());
+
+        // Wait for the specified delay before allowing damage again
+        float elapsedTime = 0f;
+        while (elapsedTime < damageDelay)
+        {
+            elapsedTime += Time.deltaTime;
+            yield return null; // Wait for the next frame
+        }
+
+        canDamage = true; // Allow damage again after the delay
+
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            Debug.Log("PLayer Excited the Trigger Zone");
         }
     }
 }

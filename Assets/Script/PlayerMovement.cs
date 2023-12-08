@@ -7,10 +7,7 @@ public class PlayerMovement : MonoBehaviour
 {
     // Start is called before the first frame update
     public float speed = 5f;
-    public float attackCooldown = 0.5f;
-
     private Rigidbody2D rb;
-    private float nextAttackTime = 0f;
 
     void Start()
     {
@@ -21,7 +18,6 @@ public class PlayerMovement : MonoBehaviour
     void Update()
     {
         MovePlayer();
-        Attack();
     }
 
     void MovePlayer()
@@ -34,15 +30,5 @@ public class PlayerMovement : MonoBehaviour
         movement.Normalize();
 
         rb.velocity = movement * speed;
-    }
-
-    void Attack()
-    {
-        if (Input.GetButtonDown("Fire1") && Time.time >= nextAttackTime)
-        {
-            Debug.Log("Attack!");
-
-            nextAttackTime = Time.time + attackCooldown;
-        }
     }
 }
